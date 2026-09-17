@@ -1,0 +1,13 @@
+project3/windows/flutter/generated_plugins.cmake
+project3/windows/flutter/generated_plugin_registrant.h
+project3/windows/flutter/generated_plugin_registrant.cc
+project3/macos/Flutter/GeneratedPluginRegistrant.swift
+project3/linux/flutter/generated_plugins.cmake
+project3/linux/flutter/generated_plugin_registrant.h
+project3/linux/flutter/generated_plugin_registrant.cc
+.idea/vcs.xml
+.idea/Project-3.iml
+.idea/modules.xml
+.idea/misc.xml
+.idea/libraries/Dart_SDK.xml
+.idea/caches/deviceStreaming.xml

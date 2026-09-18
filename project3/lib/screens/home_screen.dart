@@ -1,9 +1,33 @@
 import 'package:flutter/material.dart';
 
 import 'game_screen.dart';
+import '../speedrun/best_time_store.dart';
+import '../speedrun/speedrun_time.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key, this.bestTimeStore});
+
+  final BestTimeStore? bestTimeStore;
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late final BestTimeStore _bestTimeStore;
+  Duration? _bestTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _bestTimeStore = widget.bestTimeStore ?? BestTimeStore();
+    _loadBestTime();
+  }
+
+  Future<void> _loadBestTime() async {
+    final bestTime = await _bestTimeStore.load();
+    if (mounted) setState(() => _bestTime = bestTime);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,13 +92,7 @@ class HomeScreen extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => const GameScreen(),
-                            ),
-                          );
-                        },
+                        onPressed: () => _openGame(context),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: brown,
                           foregroundColor: const Color(0xFFFFF8EC),
@@ -91,6 +109,49 @@ class HomeScreen extends StatelessWidget {
                         child: const Text('START GAME'),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        key: const ValueKey('speedrun-mode-button'),
+                        onPressed: () => _openGame(context, speedrun: true),
+                        icon: const Icon(Icons.timer_outlined),
+                        label: const Text('SPEEDRUN MODE'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: brown,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          side: const BorderSide(color: brown, width: 2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (_bestTime != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        key: const ValueKey('speedrun-best-time'),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: beige,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Text(
+                          'SPEEDRUN BEST: ${formatSpeedrunTime(_bestTime!)}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: brown,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: .6,
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 24),
                     const Text(
                       'Your goal is simple: create a password that follows every rule. Can you get them all right?',
@@ -109,5 +170,17 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _openGame(BuildContext context, {bool speedrun = false}) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => GameScreen(
+          speedrun: speedrun,
+          bestTimeStore: speedrun ? _bestTimeStore : null,
+        ),
+      ),
+    );
+    if (speedrun) await _loadBestTime();
   }
 }

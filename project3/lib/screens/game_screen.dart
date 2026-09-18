@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 
 import '../password_controller.dart';
 import '../password_rules.dart';
+import '../speedrun/best_time_store.dart';
+import '../speedrun/speedrun_time.dart';
 import '../weather_service.dart';
 import 'weather_panel.dart';
 
@@ -15,10 +17,14 @@ class GameScreen extends StatefulWidget {
     this.createGame,
     this.weatherService,
     this.random,
+    this.speedrun = false,
+    this.bestTimeStore,
   });
   final PasswordGame Function()? createGame;
   final WeatherService? weatherService;
   final Random? random;
+  final bool speedrun;
+  final BestTimeStore? bestTimeStore;
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -40,6 +46,8 @@ class _GameScreenState extends State<GameScreen> {
   Timer? _dateTimer;
   Timer? _catTimer;
   Timer? _mysteryTimer;
+  Timer? _speedrunTimer;
+  final Stopwatch _stopwatch = Stopwatch();
   bool _mystery = false;
   bool _finished = false;
   int _epoch = 0;
@@ -64,18 +72,34 @@ class _GameScreenState extends State<GameScreen> {
       }
     });
     _activateEffects();
+    if (widget.speedrun) {
+      _stopwatch.start();
+      _speedrunTimer = Timer.periodic(
+        const Duration(milliseconds: 10),
+        (_) => mounted && !_finished ? setState(() {}) : null,
+      );
+    }
   }
 
   void _changed() {
     if (_finished) return;
     setState(() {
       if (_game.hasWon(_password, _italic)) {
+        _stopwatch.stop();
+        _speedrunTimer?.cancel();
         _finished = true;
         _mystery = false;
         _stopEffects();
+        if (widget.speedrun) _saveBestTime();
       }
     });
     _scheduleReveal();
+  }
+
+  Future<void> _saveBestTime() async {
+    await (widget.bestTimeStore ?? BestTimeStore()).saveIfFaster(
+      _stopwatch.elapsed,
+    );
   }
 
   void _activateEffects() {
@@ -144,6 +168,7 @@ class _GameScreenState extends State<GameScreen> {
 
   void _reset() {
     _stopEffects();
+    _speedrunTimer?.cancel();
     _controller.clear();
     setState(() {
       _finished = false;
@@ -153,6 +178,15 @@ class _GameScreenState extends State<GameScreen> {
       _today = _game.today;
     });
     _activateEffects();
+    if (widget.speedrun) {
+      _stopwatch
+        ..reset()
+        ..start();
+      _speedrunTimer = Timer.periodic(
+        const Duration(milliseconds: 10),
+        (_) => mounted && !_finished ? setState(() {}) : null,
+      );
+    }
   }
 
   void _insertEmoji(String emoji) {
@@ -164,6 +198,7 @@ class _GameScreenState extends State<GameScreen> {
   void dispose() {
     _stopEffects();
     _dateTimer?.cancel();
+    _speedrunTimer?.cancel();
     _inputFocus.dispose();
     if (widget.weatherService == null) _weather.close();
     _controller.dispose();
@@ -204,6 +239,10 @@ class _GameScreenState extends State<GameScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      if (widget.speedrun) ...[
+                        _speedrunTimerCard(),
+                        const SizedBox(height: 20),
+                      ],
                       Text(
                         _hasWon
                             ? 'Password accepted!'
@@ -326,6 +365,41 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _speedrunTimerCard() {
+    return Container(
+      key: const ValueKey('speedrun-timer'),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        color: _cream,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFC6AC88)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            _hasWon ? 'FINAL TIME' : 'SPEEDRUN TIME',
+            style: TextStyle(
+              color: _muted,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            formatSpeedrunTime(_stopwatch.elapsed),
+            key: const ValueKey('speedrun-time-value'),
+            style: TextStyle(
+              color: _brown,
+              fontSize: 30,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -100,11 +100,15 @@ class PasswordGame {
     DateTime Function()? now,
     int? verseIndex,
     int? mathIndex,
+    int? anagramIndex,
   }) : _now = now ?? DateTime.now {
     final picker = random ?? Random();
     verse =
         verseChallenges[verseIndex ?? picker.nextInt(verseChallenges.length)];
     math = mathChallenges[mathIndex ?? picker.nextInt(mathChallenges.length)];
+    anagram =
+        anagramChallenges[anagramIndex ??
+            picker.nextInt(anagramChallenges.length)];
     rules = [
       PasswordRule(
         'length',
@@ -177,6 +181,13 @@ class PasswordGame {
         detail: 'Highlight text, then use “Italic selected characters”. Every English consonant, including Y, must be italic. New characters start plain.',
       ),
       PasswordRule(
+        'anagram',
+        'Solve this anagram and include the answer in your password.',
+        (p, _) => p.toLowerCase().contains(anagram.answer),
+        detail:
+            '${anagram.scrambled}\nClue: ${anagram.hint}\nThe answer is not case-sensitive.',
+      ),
+      PasswordRule(
         'selfLength',
         'Your password must include the length of your password.',
         (p, _) => containsNumber(p, p.characters.length),
@@ -219,6 +230,7 @@ class PasswordGame {
   final DateTime Function() _now;
   late final VerseChallenge verse;
   late final MathChallenge math;
+  late final AnagramChallenge anagram;
   late final List<PasswordRule> rules;
   int visibleCount = 1;
   int? temperatureF;

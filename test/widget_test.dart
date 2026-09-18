@@ -38,13 +38,21 @@ void main() {
   testWidgets('complete game, italic formatting, regression and restart', (
     tester,
   ) async {
-    final game = PasswordGame(verseIndex: 0, mathIndex: 0, now: () => testDate);
+    final game = PasswordGame(
+      verseIndex: 0,
+      mathIndex: 0,
+      anagramIndex: 0,
+      now: () => testDate,
+    );
     await tester.pumpWidget(
       MaterialApp(
         home: GameScreen(
-          createGame: () =>
-              PasswordGame(verseIndex: 0, mathIndex: 0, now: () => testDate)
-                ..temperatureF = 72,
+          createGame: () => PasswordGame(
+            verseIndex: 0,
+            mathIndex: 0,
+            anagramIndex: 0,
+            now: () => testDate,
+          )..temperatureF = 72,
         ),
       ),
     );
@@ -66,7 +74,7 @@ void main() {
     await tester.pump();
     await tester.ensureVisible(find.byKey(const ValueKey('italic-control')));
     await tester.tap(find.byKey(const ValueKey('italic-control')));
-    for (var i = 0; i < 7; i++) {
+    for (var i = 0; i < 8; i++) {
       await tester.pump(const Duration(milliseconds: 700));
     }
     expect(find.text('Password accepted!'), findsOneWidget);

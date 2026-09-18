@@ -5,6 +5,43 @@ class VerseChallenge {
   final List<String> aliases;
 }
 
+class AnagramChallenge {
+  const AnagramChallenge(this.scrambled, this.answer, this.hint);
+  final String scrambled;
+  final String answer;
+  final String hint;
+}
+
+// A clue gives each scramble a clear intended solution.
+const anagramChallenges = <AnagramChallenge>[
+  AnagramChallenge('TENALP', 'planet', 'A world that orbits a star.'),
+  AnagramChallenge(
+    'DENGAR',
+    'garden',
+    'A place where flowers and vegetables grow.',
+  ),
+  AnagramChallenge(
+    'TROCEPUM',
+    'computer',
+    'An electronic machine that runs programs.',
+  ),
+  AnagramChallenge('BOWRAIN', 'rainbow', 'A colorful arc after rain.'),
+  AnagramChallenge('NAECO', 'ocean', 'A vast body of salt water.'),
+  AnagramChallenge('RETNIW', 'winter', 'The coldest season.'),
+  AnagramChallenge('ROFEST', 'forest', 'A large area covered with trees.'),
+  AnagramChallenge('TARBIB', 'rabbit', 'A long-eared animal that hops.'),
+  AnagramChallenge(
+    'LNEPIC',
+    'pencil',
+    'A writing tool with an erasable graphite core.',
+  ),
+  AnagramChallenge(
+    'CISUM',
+    'music',
+    'Sounds arranged into melodies and rhythms.',
+  ),
+];
+
 // Original short verses for this game's language challenge.
 const verseChallenges = <VerseChallenge>[
   VerseChallenge('The moon is bright; the stars fill the night.', 'English'),

@@ -16,12 +16,20 @@ class ZeroRandom implements Random {
   double nextDouble() => 0;
 }
 
-Future<PasswordController> openGame(WidgetTester tester, int visible) async {
+Future<PasswordController> openGame(
+  WidgetTester tester,
+  String lastRule,
+) async {
   await tester.pumpWidget(
     MaterialApp(
       home: GameScreen(
         random: ZeroRandom(),
-        createGame: () => PasswordGame()..visibleCount = visible,
+        createGame: () {
+          final game = PasswordGame();
+          game.visibleCount =
+              game.rules.indexWhere((r) => r.id == lastRule) + 1;
+          return game;
+        },
       ),
     ),
   );
@@ -35,7 +43,7 @@ void main() {
   testWidgets(
     'cat clock starts at unlock, repeats every 5 seconds, ignores typing',
     (tester) async {
-      final c = await openGame(tester, 15);
+      final c = await openGame(tester, 'cats');
       await tester.pump(const Duration(seconds: 2));
       await tester.enterText(
         find.byKey(const ValueKey('password-input')),
@@ -56,7 +64,7 @@ void main() {
   );
 
   testWidgets('cat effect is absent before its rule unlocks', (tester) async {
-    final c = await openGame(tester, 14);
+    final c = await openGame(tester, 'date');
     await tester.pump(const Duration(seconds: 20));
     expect(c.text, isEmpty);
     await tester.pumpWidget(const SizedBox());
@@ -65,7 +73,7 @@ void main() {
   testWidgets('mystery flips the whole game and switches to dark mode', (
     tester,
   ) async {
-    await openGame(tester, 16);
+    await openGame(tester, 'mystery');
     expect(
       Theme.of(tester.element(find.byType(Scaffold))).brightness,
       Brightness.light,
@@ -92,7 +100,7 @@ void main() {
   testWidgets('physical backspace prefixes once, including at the start', (
     tester,
   ) async {
-    final c = await openGame(tester, 18);
+    final c = await openGame(tester, 'backspace');
     await tester.enterText(find.byKey(const ValueKey('password-input')), 'abc');
     await tester.sendKeyEvent(LogicalKeyboardKey.backspace);
     await tester.pump();
